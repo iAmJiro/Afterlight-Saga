@@ -1,0 +1,31 @@
+# Normalize all text files to use LF line endings in repo, CRLF on checkout (Windows)
+* text=auto
+
+# Explicit settings for Unity file types
+*.cs text diff=csharp
+*.shader text
+*.cginc text
+*.compute text
+*.txt text
+*.asmdef text
+*.json text
+*.xml text
+*.unity text
+*.prefab text
+*.asset text
+*.anim text
+*.meta text
+
+# Binary files – don't diff or change line endings
+*.png binary
+*.jpg binary
+*.fbx binary
+*.mat binary
+*.mp3 binary
+*.ogg binary
+*.wav binary
+*.dll binary
+*.exe binary
+*.ttf binary
+*.otf binary
+*.webm binary
