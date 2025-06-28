@@ -44,10 +44,10 @@ public class SPUM_Prefabs : MonoBehaviour
     private float horizontal;
 
     [Header("Jump Settings")]
-public float jumpForce = 5f;
-public LayerMask groundLayer;
-public Transform groundCheck;
-public float groundCheckRadius = 0.2f;
+    public float jumpForce = 5f;
+    public LayerMask groundLayer;
+    public Transform groundCheck;
+    public float groundCheckRadius = 0.2f;
     public GameObject prefab;
 
     private bool isGrounded;
