@@ -4,13 +4,24 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+
 public class PartyFollowingSPUM : MonoBehaviour
 {
-    [Header("SPUM Setup")]
+    public enum PlayerState
+    {
+        IDLE,
+        MOVE,
+        ATTACK,
+        DAMAGED,
+        DEBUFF,
+        DEATH,
+    }
+
+        [Header("SPUM Setup")]
     public float _version;
     public bool EditChk;
     public string _code;
-    public Animator _anim;
+    [SerializeField] private Animator _anim;
     private AnimatorOverrideController OverrideController;
 
     public string UnitType;
@@ -34,20 +45,32 @@ public class PartyFollowingSPUM : MonoBehaviour
 
     private bool facingRight = true;
     private Rigidbody2D rb;
+    private float previousSpeed = 0f;
+    public GameObject prefab;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         OverrideControllerInit();
+        if (_anim == null)
+            _anim = GetComponent<Animator>();
+        
+
     }
 
     void Update()
     {
+
         if (playerToFollow == null)
         {
             rb.velocity = Vector2.zero;
             PlayAnimation(PlayerState.IDLE, 0);
             return;
+        }
+        else 
+        {
+            PlayAnimation(PlayerState.MOVE, 0);
+
         }
 
         float distance = Vector3.Distance(playerToFollow.position, transform.position);
@@ -66,6 +89,22 @@ public class PartyFollowingSPUM : MonoBehaviour
 
         FlipIfNeeded();
         _anim.SetFloat("xVelocity", Mathf.Abs(rb.velocity.x));
+        float currentSpeed = rb.velocity.magnitude;
+
+        if (currentSpeed > previousSpeed)
+        {
+            PlayAnimation(PlayerState.MOVE, 0);
+            Debug.Log("Velocity is increasing");
+        }
+        else if (currentSpeed < previousSpeed)
+        {
+            PlayAnimation(PlayerState.IDLE, 0);
+            Debug.Log("Velocity is decreasing");
+        }
+
+        previousSpeed = currentSpeed;
+
+
     }
 
     void FlipIfNeeded()

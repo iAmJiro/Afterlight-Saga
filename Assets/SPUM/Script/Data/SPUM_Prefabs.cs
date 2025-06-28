@@ -48,17 +48,21 @@ public float jumpForce = 5f;
 public LayerMask groundLayer;
 public Transform groundCheck;
 public float groundCheckRadius = 0.2f;
+    public GameObject prefab;
 
-private bool isGrounded;
+    private bool isGrounded;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         OverrideControllerInit();
+        
+
     }
 
     void Update()
     {
+       
         horizontal = Input.GetAxisRaw("Horizontal");
         // Flip sprite based on input
         if (horizontal > 0 && facingRight) Flip();
