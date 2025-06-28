@@ -56,13 +56,12 @@ public float groundCheckRadius = 0.2f;
     {
         rb = GetComponent<Rigidbody2D>();
         OverrideControllerInit();
-        
-
     }
 
     void Update()
     {
        
+        float vertical = Input.GetAxis("Vertical");
         horizontal = Input.GetAxisRaw("Horizontal");
         // Flip sprite based on input
         if (horizontal > 0 && facingRight) Flip();
@@ -77,7 +76,38 @@ public float groundCheckRadius = 0.2f;
         {
             PlayAnimation(PlayerState.IDLE, 0);
         }
+
+        //if (Input.GetKey(KeyCode.LeftShift))
+        //{
+        //    moveSpeed = 2;
+        //}
+        //else
+        //{
+        //    moveSpeed = 1;
+        //}
+
+        //// Optional: Apply movement
+        //Vector3 direction = new Vector3(horizontal, 0, vertical);
+        //transform.Translate(direction * moveSpeed * Time.deltaTime);
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     void FixedUpdate()
     {
