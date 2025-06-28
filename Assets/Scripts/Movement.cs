@@ -71,11 +71,11 @@ public class Movement : MonoBehaviour
         float speed = isRunning ? runSpeed : walkSpeed;
         rb.velocity = new Vector2(moveInput.x * speed, rb.velocity.y); // Keep the Y velocity for jumping
 
-        if (moveInput.x > 0 && !facingRight)
+        if (moveInput.x > 0 && facingRight)
         {
             Flip();
         }
-        else if (moveInput.x < 0 && facingRight)
+        else if (moveInput.x < 0 && !facingRight)
         {
             Flip();
         }
