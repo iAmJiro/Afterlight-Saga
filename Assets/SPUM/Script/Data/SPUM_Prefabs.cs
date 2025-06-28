@@ -91,24 +91,6 @@ public float groundCheckRadius = 0.2f;
         //transform.Translate(direction * moveSpeed * Time.deltaTime);
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     void FixedUpdate()
     {
         rb.velocity = new Vector2(horizontal * moveSpeed, rb.velocity.y);
