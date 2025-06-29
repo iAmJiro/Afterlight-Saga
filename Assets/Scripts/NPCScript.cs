@@ -1,22 +1,29 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
+using System.Linq;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.AI;
-using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
 public class NPCScript : MonoBehaviour
 {
+    public enum PlayerState
+    {
+        IDLE,
+        MOVE,
+        ATTACK,
+        DAMAGED,
+        DEBUFF,
+        DEATH,
+        OTHER,
+    }
+
     [Header("SPUM Setup")]
-    public float _version;
-    public bool EditChk;
-    public string _code;
     public Animator _anim;
     private AnimatorOverrideController OverrideController;
 
     public string UnitType;
     public List<SpumPackage> spumPackages = new();
-    public List<PreviewMatchingElement> ImageElement = new();
     public List<SPUM_AnimationData> SpumAnimationData = new();
     public Dictionary<string, List<AnimationClip>> StateAnimationPairs = new();
     public List<AnimationClip> IDLE_List = new();
@@ -27,64 +34,83 @@ public class NPCScript : MonoBehaviour
     public List<AnimationClip> DEATH_List = new();
     public List<AnimationClip> OTHER_List = new();
 
-    public float walkingSpeed = 2f; // Walking pace speed
-    public float waitTime = 2f; // Time to wait at each patrol point
+    [Header("Patrol Settings")]
+    public float walkingSpeed = 2f;
+    public float waitTime = 2f;
     public List<Transform> patrolPoints = new List<Transform>();
-    
-    private NavMeshAgent kunoichiAgent;
-    private Transform kunoichiTransform;
-    private int currentPosition;
-    private bool isWaiting = false;
 
+    [Header("Movement Settings")]
+    private float idleCooldown = 0.2f;
+    private float idleTimer = 0f;
+    private NavMeshAgent agent;
+    private int currentPatrolIndex;
+    private bool isWaiting;
     private bool facingRight = true;
-    private float horizontal;
-    private float vertical;
 
     void Start()
     {
-        kunoichiAgent = GetComponent<NavMeshAgent>();
-        kunoichiTransform = GetComponent<Transform>();
+        agent = GetComponent<NavMeshAgent>();
+        if (_anim == null) _anim = GetComponentInChildren<Animator>();
+        if (_anim == null)
+        {
+            Debug.LogError("Animator not found on NPC.");
+            return;
+        }
 
-        // Set walking speed
-        kunoichiAgent.speed = walkingSpeed;
+        OverrideControllerInit();
 
-        // Make sure the rotation of the agent is controlled manually
-        kunoichiAgent.updateRotation = false;
-
-        // Set the destination to the first patrol point
-        kunoichiAgent.destination = patrolPoints[currentPosition].position;
+        agent.speed = walkingSpeed;
+        agent.updateRotation = false;
+        if (patrolPoints.Count > 0)
+            agent.destination = patrolPoints[currentPatrolIndex].position;
     }
 
     void Update()
     {
-        if (!isWaiting)
+
+        Vector3 velocity = agent.velocity;
+        bool currentlyMoving = velocity.sqrMagnitude > 0.05f;
+        bool isMoving = velocity.sqrMagnitude > 0.01f;
+
+        if (currentlyMoving)
         {
-            // Move to current patrol destination
-            kunoichiAgent.destination = patrolPoints[currentPosition].position;
+            idleTimer = 0f;
+            PlayAnimation(PlayerState.MOVE, 0);
 
-            // Check if the agent is actually moving
-            Vector3 velocity = kunoichiAgent.velocity;
-
-            if (velocity.sqrMagnitude > 0.01f)
-            {
-                PlayAnimation(PlayerState.MOVE, 0);
-
-                // Optional: Flip based on direction.x
-                if (velocity.x > 0 && !facingRight) Flip();
-                else if (velocity.x < 0 && facingRight) Flip();
-            }
-            else
-            {
+            if (velocity.x > 0 && facingRight) Flip();
+            else if (velocity.x < 0 && !facingRight) Flip();
+        }
+        else
+        {
+            idleTimer += Time.deltaTime;
+            if (idleTimer >= idleCooldown)
                 PlayAnimation(PlayerState.IDLE, 0);
-            }
+        }
+        if (isWaiting || patrolPoints.Count == 0)
+        {
+            PlayAnimation(PlayerState.IDLE, 0);
+            return;
+        }
 
-            // Proceed to the next patrol point if close enough
-            if (!kunoichiAgent.pathPending && kunoichiAgent.remainingDistance < 0.5f)
-            {
-                StartCoroutine(WaitAtPatrolPoint());
-            }
+        
+        //if (isMoving)
+        //{
+        //    _anim.Play("MOVE");
+        //    PlayAnimation(PlayerState.MOVE, 0);
+        //    if (velocity.x > 0 && !facingRight) Flip();
+        //    else if (velocity.x < 0 && facingRight) Flip();
+        //}
+        else
+        {
+            PlayAnimation(PlayerState.IDLE, 0);
+        }
+
+        if (!agent.pathPending && agent.remainingDistance < 0.5f)
+        {
+            StartCoroutine(WaitAtPatrolPoint());
         }
     }
+
     void Flip()
     {
         facingRight = !facingRight;
@@ -92,23 +118,73 @@ public class NPCScript : MonoBehaviour
         scale.x *= -1;
         transform.localScale = scale;
     }
-    // Coroutine to wait at the patrol point for the specified wait time
+
     IEnumerator WaitAtPatrolPoint()
     {
-        isWaiting = true; // Prevent movement during waiting
-
-        // Wait for the set amount of time
+        isWaiting = true;
         yield return new WaitForSeconds(waitTime);
+        currentPatrolIndex = (currentPatrolIndex + 1) % patrolPoints.Count;
+        agent.destination = patrolPoints[currentPatrolIndex].position;
+        isWaiting = false;
+    }
 
-        // Move to the next patrol point
-        currentPosition++;
-        if (currentPosition >= patrolPoints.Count)
+    public void OverrideControllerInit()
+    {
+        OverrideController = new AnimatorOverrideController();
+        OverrideController.runtimeAnimatorController = _anim.runtimeAnimatorController;
+
+        foreach (var clip in _anim.runtimeAnimatorController.animationClips)
         {
-            currentPosition = 0;
+            OverrideController[clip.name] = clip;
         }
 
-        isWaiting = false; // Allow movement again
+        _anim.runtimeAnimatorController = OverrideController;
+
+        foreach (PlayerState state in System.Enum.GetValues(typeof(PlayerState)))
+        {
+            StateAnimationPairs[state.ToString()] = state switch
+            {
+                PlayerState.IDLE => IDLE_List,
+                PlayerState.MOVE => MOVE_List,
+                PlayerState.ATTACK => ATTACK_List,
+                PlayerState.DAMAGED => DAMAGED_List,
+                PlayerState.DEBUFF => DEBUFF_List,
+                PlayerState.DEATH => DEATH_List,
+                _ => OTHER_List
+            };
+        }
+
+        PopulateAnimationLists();
     }
+
+    public void PopulateAnimationLists()
+    {
+        IDLE_List.Clear(); MOVE_List.Clear(); ATTACK_List.Clear();
+        DAMAGED_List.Clear(); DEBUFF_List.Clear(); DEATH_List.Clear(); OTHER_List.Clear();
+
+        var groupedClips = spumPackages
+            .SelectMany(pkg => pkg.SpumAnimationData)
+            .Where(c => c.HasData && c.UnitType == UnitType && c.index > -1)
+            .GroupBy(c => c.StateType)
+            .ToDictionary(g => g.Key, g => g.OrderBy(c => c.index).ToList());
+
+        foreach (var kvp in groupedClips)
+        {
+            var list = kvp.Key switch
+            {
+                "IDLE" => IDLE_List,
+                "MOVE" => MOVE_List,
+                "ATTACK" => ATTACK_List,
+                "DAMAGED" => DAMAGED_List,
+                "DEBUFF" => DEBUFF_List,
+                "DEATH" => DEATH_List,
+                _ => OTHER_List
+            };
+
+            list.AddRange(kvp.Value.Select(c => LoadAnimationClip(c.ClipPath)));
+        }
+    }
+
     public void PlayAnimation(PlayerState state, int index)
     {
         if (!StateAnimationPairs.TryGetValue(state.ToString(), out var list) || list.Count <= index) return;
@@ -137,7 +213,7 @@ public class NPCScript : MonoBehaviour
         var clip = Resources.Load<AnimationClip>(path.Replace(".anim", ""));
         if (clip == null)
         {
-            Debug.LogWarning($"Failed to load clip at '{path}'.");
+            Debug.LogWarning($"Failed to load clip at '{path}'");
         }
         return clip;
     }
