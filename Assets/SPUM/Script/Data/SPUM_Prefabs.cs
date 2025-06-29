@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GLTFast.Schema;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,10 +39,11 @@ public class SPUM_Prefabs : MonoBehaviour
     public List<AnimationClip> OTHER_List = new();
 
     [Header("Movement Settings")]
-    public float moveSpeed = 1.3f;
+    private float moveSpeed = 10f;
     private Rigidbody2D rb;
     private bool facingRight = true;
     private float horizontal;
+    private float vertical;
 
     [Header("Jump Settings")]
     public float jumpForce = 5f;
@@ -51,50 +53,84 @@ public class SPUM_Prefabs : MonoBehaviour
     public GameObject prefab;
 
     private bool isGrounded;
-
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         OverrideControllerInit();
     }
-
     void Update()
     {
-       
-        float vertical = Input.GetAxis("Vertical");
         horizontal = Input.GetAxisRaw("Horizontal");
-        // Flip sprite based on input
+        vertical = Input.GetAxisRaw("Vertical");
         if (horizontal > 0 && facingRight) Flip();
         else if (horizontal < 0 && !facingRight) Flip();
 
-        // Update animation state
-        if (Mathf.Abs(horizontal) > 0.01f)
+        if (Input.GetKey(KeyCode.W))
         {
-            PlayAnimation(PlayerState.MOVE, 0);
+            if (Mathf.Abs(horizontal) > 0.01f || Mathf.Abs(vertical) > 0.01f) 
+            {
+                transform.position += new Vector3(0, 0, 4) * Time.deltaTime;
+
+                PlayAnimation(PlayerState.MOVE, 0);
+            }
+        }
+        else if (Input.GetKey(KeyCode.S))
+        {
+            if (Mathf.Abs(horizontal) > 0.01f || Mathf.Abs(vertical) > 0.01f)
+            {
+                transform.position += new Vector3(0, 0, -4) * Time.deltaTime;
+
+                PlayAnimation(PlayerState.MOVE, 0);
+            }
+        }
+        else if (Input.GetKey(KeyCode.A))
+        {
+            if (Mathf.Abs(horizontal) > 0.01f || Mathf.Abs(horizontal) > 0.01f)
+            {
+                transform.position += new Vector3(-1, 0, 0) * Time.deltaTime;
+
+                PlayAnimation(PlayerState.MOVE, 0);
+            }
+        }
+        else if (Input.GetKey(KeyCode.D))
+        {
+            if (Mathf.Abs(horizontal) > 0.01f || Mathf.Abs(horizontal) > 0.01f)
+            {
+                transform.position += new Vector3(1, 0, 0) * Time.deltaTime;
+                
+                PlayAnimation(PlayerState.MOVE, 0);
+            }
         }
         else
         {
             PlayAnimation(PlayerState.IDLE, 0);
         }
 
-        //if (Input.GetKey(KeyCode.LeftShift))
-        //{
-        //    moveSpeed = 2;
-        //}
-        //else
-        //{
-        //    moveSpeed = 1;
-        //}
-
-        //// Optional: Apply movement
-        //Vector3 direction = new Vector3(horizontal, 0, vertical);
-        //transform.Translate(direction * moveSpeed * Time.deltaTime);
-
+        // Allow attack input even when moving
+        
     }
     void FixedUpdate()
     {
-        rb.velocity = new Vector2(horizontal * moveSpeed, rb.velocity.y);
+        // now apply both X and Y
+        vertical = Input.GetAxisRaw("Vertical");
+        rb.velocity = new Vector2(horizontal * moveSpeed, vertical * moveSpeed);
     }
+
+
+
+    //if (Input.GetKey(KeyCode.LeftShift))
+    //{
+    //    moveSpeed = 2;
+    //}
+    //else
+    //{
+    //    moveSpeed = 1;
+    //}
+
+    //// Optional: Apply movement
+    //Vector3 direction = new Vector3(horizontal, 0, vertical);
+    //transform.Translate(direction * moveSpeed * Time.deltaTime);
+
 
     void Flip()
     {
