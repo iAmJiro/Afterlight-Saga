@@ -242,8 +242,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d211931304fb5848aef6194c783539d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationAngle: 5
-  interval: 1
+  rotationAngle: 1
+  interval: 0.25
 --- !u!1 &716957531
 GameObject:
   m_ObjectHideFlags: 0
