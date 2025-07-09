@@ -52,6 +52,7 @@ public class SPUM_Prefabs : MonoBehaviour
     public float groundCheckRadius = 0.2f;
     public GameObject prefab;
 
+    float yMoveSpeed = 7f;
     private bool isGrounded;
     void Start()
     {
@@ -69,7 +70,7 @@ public class SPUM_Prefabs : MonoBehaviour
         {
             if (Mathf.Abs(horizontal) > 0.01f || Mathf.Abs(vertical) > 0.01f) 
             {
-                transform.position += new Vector3(0, 0, 4) * Time.deltaTime;
+                transform.position += new Vector3(0, 0, yMoveSpeed) * Time.deltaTime;
 
                 PlayAnimation(PlayerState.MOVE, 0);
             }
@@ -78,7 +79,7 @@ public class SPUM_Prefabs : MonoBehaviour
         {
             if (Mathf.Abs(horizontal) > 0.01f || Mathf.Abs(vertical) > 0.01f)
             {
-                transform.position += new Vector3(0, 0, -4) * Time.deltaTime;
+                transform.position += new Vector3(0, 0, -yMoveSpeed) * Time.deltaTime;
 
                 PlayAnimation(PlayerState.MOVE, 0);
             }
