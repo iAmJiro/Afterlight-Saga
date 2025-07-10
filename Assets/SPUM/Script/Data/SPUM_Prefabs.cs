@@ -90,7 +90,7 @@ public class SPUM_Prefabs : MonoBehaviour
         {
             if (Mathf.Abs(horizontal) > 0.01f || Mathf.Abs(horizontal) > 0.01f)
             {
-                transform.position += new Vector3(-1, 0, xMoveSpeed) * Time.deltaTime;
+                transform.position += new Vector3(-xMoveSpeed, 0, 1) * Time.deltaTime;
 
                 PlayAnimation(PlayerState.MOVE, 0);
             }
@@ -99,7 +99,7 @@ public class SPUM_Prefabs : MonoBehaviour
         {
             if (Mathf.Abs(horizontal) > 0.01f || Mathf.Abs(horizontal) > 0.01f)
             {
-                transform.position += new Vector3(1, 0, -xMoveSpeed) * Time.deltaTime;
+                transform.position += new Vector3(xMoveSpeed, 0, 1) * Time.deltaTime;
 
                 PlayAnimation(PlayerState.MOVE, 0);
             }
