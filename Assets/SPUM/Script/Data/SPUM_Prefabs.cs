@@ -68,7 +68,7 @@ public class SPUM_Prefabs : MonoBehaviour
 
         if (Input.GetKey(KeyCode.W))
         {
-            if (Mathf.Abs(horizontal) > 0.01f || Mathf.Abs(vertical) > 0.01f) 
+            if (Mathf.Abs(horizontal) > 0.01f || Mathf.Abs(vertical) > 0.01f)
             {
                 transform.position += new Vector3(0, 0, yMoveSpeed) * Time.deltaTime;
 
@@ -98,9 +98,42 @@ public class SPUM_Prefabs : MonoBehaviour
             if (Mathf.Abs(horizontal) > 0.01f || Mathf.Abs(horizontal) > 0.01f)
             {
                 transform.position += new Vector3(1, 0, 0) * Time.deltaTime;
-                
+
                 PlayAnimation(PlayerState.MOVE, 0);
             }
+        }
+        else if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (isGrounded)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, 0f); // Clear any downward velocity
+                rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+                isGrounded = false;
+            }
+        }
+        else if (Input.GetKey(KeyCode.I))
+        {
+            PlayAnimation(PlayerState.IDLE, 0);
+        }
+        else if (Input.GetKey(KeyCode.H))
+        {
+            PlayAnimation(PlayerState.MOVE, 0);
+        }
+        else if (Input.GetKey(KeyCode.J))
+        {
+            PlayAnimation(PlayerState.ATTACK, 0);
+        }
+        else if (Input.GetKey(KeyCode.K))
+        {
+            PlayAnimation(PlayerState.DAMAGED, 0);
+        }
+        else if (Input.GetKey(KeyCode.L))
+        {
+            PlayAnimation(PlayerState.DEBUFF, 0);
+        }
+        else if (Input.GetKey(KeyCode.M))
+        {
+            PlayAnimation(PlayerState.DEATH, 0);
         }
         else
         {
